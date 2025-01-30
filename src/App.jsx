@@ -28,7 +28,8 @@ const GlobalStyles = createGlobalStyle`
 
 const App = () => {
   const [segments, setSegments] = useState([
-    'JASON IS FATASSH'
+    'JASON IS',
+    'FATASSH'
   ]);
   const [newOption, setNewOption] = useState('');
 
