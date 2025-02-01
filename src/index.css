@@ -6,4 +6,9 @@ body {
   display: flex;
   justify-content: center;
   align-items: center;
+  font-family: 'ms_sans_serif', sans-serif;
+}
+
+* {
+  font-family: 'ms_sans_serif', sans-serif;
 }
