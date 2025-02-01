@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Button, styleReset } from "react95";
 import { createGlobalStyle, ThemeProvider } from "styled-components";
 import { Window, WindowHeader, WindowContent, TextInput, MenuList, MenuListItem, Separator, Frame } from "react95";
@@ -29,25 +29,29 @@ const GlobalStyles = createGlobalStyle`
 `;
 
 const App = () => {
-  const [segments, setSegments] = useState([
-    'JASON IS',
-    'FATASSH'
-  ]);
+  const [segments, setSegments] = useState(() => {
+    const saved = localStorage.getItem('wheelSegments');
+    return saved ? JSON.parse(saved) : [
+      { name: 'JASON IS', weight: 1 },
+      { name: 'FATASSH', weight: 1 }
+    ];
+  });
   const [newOption, setNewOption] = useState('');
   const [showModal, setShowModal] = useState(false);
   const [password, setPassword] = useState('');
   const [isPasswordError, setIsPasswordError] = useState(false);
   const [showSettings, setShowSettings] = useState(false);
-  const [weights, setWeights] = useState(
-    segments.reduce((acc, segment) => ({
-      ...acc,
-      [segment]: 1
-    }), {})
-  );
+
+  useEffect(() => {
+    localStorage.setItem('wheelSegments', JSON.stringify(segments));
+  }, [segments]);
 
   const handleAddOption = () => {
     if (newOption.trim()) {
-      setSegments([...segments, newOption.trim()]);
+      setSegments([...segments, { 
+        name: newOption.trim(), 
+        weight: 1 
+      }]);
       setNewOption('');
     }
   };
@@ -71,12 +75,13 @@ const App = () => {
     }
   };
 
-  const handleWeightChange = (segment, value) => {
+  const handleWeightChange = (index, value) => {
     const numValue = parseInt(value) || 1;
-    setWeights({
-      ...weights,
-      [segment]: numValue
-    });
+    setSegments(segments.map((segment, i) => 
+      i === index 
+        ? { ...segment, weight: numValue }
+        : segment
+    ));
   };
 
   return (
@@ -85,7 +90,8 @@ const App = () => {
       <ThemeProvider theme={original}>
         <div style={{ padding: '20px', display: 'flex', gap: '10rem' }}>
           <SpinningWheel 
-            segments={segments} 
+            segments={segments.map(s => s.name)} 
+            weights={segments.map(s => s.weight)}
             onSpinEnd={handleSpinEnd}
           />
           
@@ -169,16 +175,25 @@ const App = () => {
                         justifyContent: 'space-between',
                         width: '100%'
                       }}>
-                        {segment}
-                        <Button 
-                          onClick={() => handleDeleteOption(index)}
-                          size="sm"
-                        >
-                          <span style={{ 
-                            fontWeight: 'bold', 
-                            transform: 'translateY(-1px)'
-                          }}>x</span>
-                        </Button>
+                        <span>{segment.name}</span>
+                        <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
+                          <TextInput
+                            type="number"
+                            value={segment.weight}
+                            onChange={(e) => handleWeightChange(index, e.target.value)}
+                            style={{ width: '60px' }}
+                            min="1"
+                          />
+                          <Button 
+                            onClick={() => handleDeleteOption(index)}
+                            size="sm"
+                          >
+                            <span style={{ 
+                              fontWeight: 'bold', 
+                              transform: 'translateY(-1px)'
+                            }}>x</span>
+                          </Button>
+                        </div>
                       </div>
                     </MenuListItem>
                   ))}
@@ -314,14 +329,14 @@ const App = () => {
                             justifyContent: 'space-between'
                           }}
                         >
-                          <span style={{ flex: 1 }}>{segment}</span>
+                          <span style={{ flex: 1 }}>{segment.name}</span>
                           <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
                             <TextInput
                               type="number"
-                              value={weights[segment]}
-                              onChange={(e) => handleWeightChange(segment, e.target.value)}
+                              value={segment.weight}
+                              onChange={(e) => handleWeightChange(index, e.target.value)}
                               style={{ width: '60px' }}
-                              min="0"
+                              min="1"
                             />
                           </div>
                         </div>
@@ -334,7 +349,7 @@ const App = () => {
                         marginTop: '1rem'
                       }}>
                         <Button onClick={() => {
-                          console.log('Weights saved:', weights);
+                          console.log('Weights saved:', segments);
                           setShowSettings(false);
                         }}>
                           Apply

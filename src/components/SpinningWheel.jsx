@@ -7,8 +7,8 @@ import confetti from 'canvas-confetti';
 
 const WheelContainer = styled.div`
   position: relative;
-  width: 750px;
-  height: 750px;
+  width: 550px;
+  height: 600px;
   margin: 20px auto;
   display: flex;
   flex-direction: column;
