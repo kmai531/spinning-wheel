@@ -10,5 +10,14 @@ body {
 }
 
 * {
-  font-family: 'ms_sans_serif', sans-serif;
+  font-family: 'ms_sans_serif', sans-serif !important;
+}
+
+/* Force Chart.js canvas text to use ms_sans_serif */
+canvas {
+  font-family: 'ms_sans_serif', sans-serif !important;
+}
+
+.chartjs-text {
+  font-family: 'ms_sans_serif', sans-serif !important;
 }

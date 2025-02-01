@@ -59,13 +59,23 @@ const SEGMENT_COLORS = [
   '#F4A261',  // Orange
 ];
 
-const SpinningWheel = ({ segments, onSpinEnd }) => {
+const SpinningWheel = ({ segments, weights, onSpinEnd }) => {
   const wheelRef = useRef(null);
   const [result, setResult] = useState(null);
   const [isSpinning, setIsSpinning] = useState(false);
   const chartInstance = useRef(null);
+  const [fontLoaded, setFontLoaded] = useState(false);
+
+  // Add this useEffect to load font first
+  useEffect(() => {
+    document.fonts.ready.then(() => {
+      setFontLoaded(true);
+    });
+  }, []);
 
   useEffect(() => {
+    if (!fontLoaded) return; // Don't initialize chart until font is ready
+
     if (chartInstance.current) {
       chartInstance.current.destroy();
     }
@@ -101,10 +111,11 @@ const SpinningWheel = ({ segments, onSpinEnd }) => {
             color: "#000000",
             formatter: (_, context) => context.chart.data.labels[context.dataIndex],
             font: { 
-              size: 20,
+              size: 24,
               weight: 'bold',
-              family: "'ms_sans_serif', sans-serif"
+              family: "ms_sans_serif"  // Just use the font name directly
             },
+            textAlign: 'center',
             textStrokeWidth: 0.5,
             textStrokeColor: '#ffffff',
             padding: 6
@@ -118,7 +129,7 @@ const SpinningWheel = ({ segments, onSpinEnd }) => {
         chartInstance.current.destroy();
       }
     };
-  }, [segments]);
+  }, [segments, fontLoaded]);
 
   const spinWheel = () => {
     if (isSpinning) return;
