@@ -4,6 +4,7 @@ import Chart from "chart.js/auto";
 import ChartDataLabels from "chartjs-plugin-datalabels";
 import styled from '@emotion/styled';
 import confetti from 'canvas-confetti';
+import toast from 'react-hot-toast';
 
 const WheelContainer = styled.div`
   position: relative;
@@ -81,7 +82,7 @@ const SpinningWheel = ({ segments, weights, onSpinEnd }) => {
     }
 
     const ctx = wheelRef.current.getContext("2d");
-    const data = Array(segments.length).fill(1);
+    const data = weights || Array(segments.length).fill(1);
     
     // Assign colors to segments, cycling through the SEGMENT_COLORS array
     const colors = segments.map((_, index) => 
@@ -96,7 +97,7 @@ const SpinningWheel = ({ segments, weights, onSpinEnd }) => {
         datasets: [{
           backgroundColor: colors,
           data: data,
-          rotation: 0,
+          rotation: -90,
           borderWidth: 2,
           borderColor: '#000000'
         }]
@@ -138,45 +139,53 @@ const SpinningWheel = ({ segments, weights, onSpinEnd }) => {
     // Generate a random target segment
     const randomIndex = Math.floor(Math.random() * segments.length);
     const segmentSize = 360 / segments.length;
-    const targetRotation = 360 - (segmentSize * randomIndex + segmentSize / 2);
-    
     // This controls how many times it spins:
     // finalRotation = 360° × number of spins + extra degrees to land on winner
     const minSpins = 6;   // Reduced minimum spins
     const maxSpins = 10;  // Reduced maximum spins
     const randomSpins = minSpins + Math.random() * (maxSpins - minSpins);
-    const finalRotation = (360 * randomSpins) + targetRotation;
+    const finalRotation = (360 * randomSpins) + (segmentSize * randomIndex);
     
-    // These control the animation feel - don't change these
     let currentRotation = chartInstance.current.config.data.datasets[0].rotation || 0;
-    let increment = 25;          // Slightly higher initial speed
-    const deceleration = 0.995;  // Faster deceleration
-    const minIncrement = 0.02;    // Higher minimum increment
-    const easeStartRotations = 8; // Reduced easing phase
+    const startTime = performance.now();
+    const duration = 4000;
     
-    function animate() {
-      currentRotation += increment;
+    function animate(currentTime) {
+      const elapsed = currentTime - startTime;
+      const progress = Math.min(elapsed / duration, 1);
       
-      const remaining = finalRotation - currentRotation;
+      const easeOut = 1 - Math.pow(1 - progress, 3);
+      currentRotation = (finalRotation * easeOut);
       
-      if (remaining < 360 * easeStartRotations) {
-        const progress = 1 - (remaining / (360 * easeStartRotations));
-        const easeOut = Math.pow(progress, 1.5);  // More aggressive cubic easing
-        increment = Math.max(minIncrement, 25 * (1 - easeOut));
-      } else {
-        increment *= deceleration;
-      }
-      
-      chartInstance.current.config.data.datasets[0].rotation = currentRotation % 360;
+      chartInstance.current.config.data.datasets[0].rotation = -90 + (currentRotation % 360);
       chartInstance.current.update();
       
-      if (currentRotation < finalRotation && increment > minIncrement) {
+      if (progress < 1) {
         requestAnimationFrame(animate);
       } else {
-        setResult(segments[randomIndex]);
+        const finalPosition = (-90 + (currentRotation % 360) + 360) % 360;
+        const winningIndex = Math.floor(((360 - finalPosition) % 360) / segmentSize);
+        const winningSegment = segments[winningIndex];
+        
+        setResult(winningSegment);
         if (onSpinEnd) {
-          onSpinEnd(segments[randomIndex]);
+          onSpinEnd(winningSegment);
         }
+        
+        toast.success(`🎉 We are playing: ${winningSegment} 🎉`, {
+          icon: '🎰',
+          style: {
+            background: '#c3c3c3',
+            border: '2px solid #000000',
+            borderLeft: '2px solid #ffffff',
+            borderTop: '2px solid #ffffff',
+            boxShadow: 'inset 1px 1px #dfdfdf',
+            fontFamily: 'ms_sans_serif',
+            fontSize: '20px',
+            padding: '16px',
+          },
+        });
+        
         triggerConfetti();
         setIsSpinning(false);
       }

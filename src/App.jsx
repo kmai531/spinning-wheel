@@ -8,6 +8,7 @@ import ms_sans_serif_bold from "react95/dist/fonts/ms_sans_serif_bold.woff2";
 import SpinningWheel from "./components/SpinningWheel";
 import '@react95/icons/icons.css';
 import { FiSettings } from 'react-icons/fi';
+import { Toaster } from 'react-hot-toast';
 
 const GlobalStyles = createGlobalStyle`
   ${styleReset}
@@ -177,13 +178,6 @@ const App = () => {
                       }}>
                         <span>{segment.name}</span>
                         <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
-                          <TextInput
-                            type="number"
-                            value={segment.weight}
-                            onChange={(e) => handleWeightChange(index, e.target.value)}
-                            style={{ width: '60px' }}
-                            min="1"
-                          />
                           <Button 
                             onClick={() => handleDeleteOption(index)}
                             size="sm"
@@ -365,6 +359,19 @@ const App = () => {
             </div>
           )}
         </div>
+        <Toaster 
+          position="top-center"
+          toastOptions={{
+            style: {
+              background: '#c3c3c3',
+              border: '2px solid #000000',
+              fontFamily: 'ms_sans_serif',
+              fontSize: '20px',
+              padding: '16px',
+            },
+            duration: 3000,
+          }}
+        />
       </ThemeProvider>
     </>
   );
